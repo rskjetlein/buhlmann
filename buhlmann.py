@@ -49,10 +49,11 @@ def compute_buhlmann(df, half_times, a, b, f_n2=0.79, gf_low=0.3, gf_high=0.85):
         tissues[i] = tissues[i-1] + (p_i - tissues[i-1]) * (1 - np.exp(-dt/taus))
         p_amb = 1 + df.loc[i, 'Depth']/10
         M_raw[i] = a * p_amb + b
-        gf = gf_high - (gf_high - gf_low)*(df.loc[i,'Time'] / df['Time'].max())
+        progress = df.loc[i, 'Time'] / df['Time'].max()
+        gf = gf_low + (gf_high - gf_low) * progress
         M_scaled[i] = M_raw[i] * gf
         p_ceiling = (M_scaled[i] - b) / a
-        ceiling[i] = np.max(10*(p_ceiling - 1))
+        ceiling[i] = max(0.0, np.max(10 * (p_ceiling - 1)))
     out = df.copy()
     for j in range(len(half_times)):
         out[f'P_tissue_C{j+1}'] = tissues[:, j]
